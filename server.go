@@ -2,40 +2,23 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	//"fmt"
+
+	"./handlers"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-type (
-	dbinfo struct {
-		Name       string
-		Collection string
-		Session    mgo.Session
-		collection mgo.Collection
-	}
-
-	spot struct {
-		// ID          bson.ObjectId `bson:"_id"`
-		// TODO `bson:"spot_name"`のときのメンバの変数名はSpotNameではない
-		Spot_name   string    `bson:"spot_name"`
-		User_id     int       `bson:"user_id"`
-		Image_ids   []int     `bson:"image_ids"`
-		Latitude    float64   `bson:"latitude"`
-		Longitude   float64   `bson:"longitude"`
-		Prefecture  string    `bson:"prefecture"`
-		City        string    `bson:"city"`
-		Description string    `bson:"description"`
-		Hint        string    `bson:"hint"`
-		Favorites   int       `bson:"favorites"`
-		Created     time.Time `bson:"created"`
-		Modified    time.Time `bson:"modified"`
-	}
-)
+type dbinfo struct {
+	Name       string
+	Collection string
+	Session    mgo.Session
+	collection mgo.Collection
+}
 
 // そうとう危険な気がする．これはどこでやるのが正しい？
 var (
@@ -79,37 +62,6 @@ func getList(c echo.Context) error {
 	return c.JSON(http.StatusOK, retJSON)
 }
 
-func getSpot(c echo.Context) error {
-	retJSON := &spot{}
-
-	// idをObjectID型に変換
-	idStr := c.Param("id")
-	if !bson.IsObjectIdHex(idStr) {
-		return c.JSON(http.StatusOK, "id can not convert to ObjectID")
-	}
-	id := bson.ObjectIdHex(idStr)
-
-	// TODO goのパラメータでJSON返してる
-	err := conn.FindId(id).One(&retJSON)
-	if err != nil {
-		return c.JSON(http.StatusOK, err.Error())
-	}
-	return c.JSON(http.StatusOK, retJSON)
-}
-
-func postSpot(c echo.Context) error {
-	spots := new(spot)
-	if err := c.Bind(spots); err != nil {
-		return c.JSON(http.StatusBadRequest, "Bind: "+err.Error())
-	}
-
-	err := conn.Insert(spots)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Insert: "+err.Error())
-	}
-	return c.NoContent(http.StatusOK)
-}
-
 func main() {
 	e := echo.New()
 
@@ -124,8 +76,10 @@ func main() {
 	e.GET("/api/list/prefecture", getListPrefecture)
 	e.GET("/api/list", getList)
 
-	e.GET("/api/spot/:id", getSpot)
-	e.POST("/api/spot", postSpot)
+	e.GET("/api/spot/:id", handlers.GetSpot)
+	e.POST("/api/spot", handlers.PostSpot)
+
+	e.File("/", "public/index.html")
 
 	// Start server
 	//e.Run(standard.New(":1323"))
