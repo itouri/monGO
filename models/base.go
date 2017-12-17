@@ -6,25 +6,14 @@ import mgo (
 	"gopkg.in/mgo.v2"
 )
 
-type DbBase struct {
-	session  *mgo.Session
-	database *mgo.Database
-}
-
-func (d *DbBase) Init() {
-	d.session, err := mgo.Dial("127.0.0.1:27017")
-	if err != nil {
-		panic(fmt.Sprintf("Initialize mongodb error:%v", err))
-	}
-	defer d.session.Close()
-}
+type DbBase struct {}
 
 func (d *DbBase) Session() *mgo.Session {
-	return d.session
+	return _Session
 }
 
 func (d *DbBase) Database() *mgo.Database {
-	return d.database
+	return _Database
 }
 
 func (d *DbBase) Collection(collectionName string) *mgo.Collection {
