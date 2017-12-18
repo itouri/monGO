@@ -21,23 +21,24 @@ func GetSpot(c echo.Context) error {
 
 	// err := conn.FindId(id).One(&retJSON)
 	// TODO goのパラメータでJSON返してる
-	spot = new(models.Spot)
-	err := spot.FindId(id).One(&retJSON)
+	spot := new(models.Spot)
+	err := spot.FindId("unicorns", id).One(&retJSON)
 	if err != nil {
 		return c.JSON(http.StatusOK, err.Error())
 	}
 	return c.JSON(http.StatusOK, retJSON)
 }
 
-// func PostSpot(c echo.Context) error {
-// 	spots := new(models.Spot)
-// 	if err := c.Bind(spots); err != nil {
-// 		return c.JSON(http.StatusBadRequest, "Bind: "+err.Error())
-// 	}
+func PostSpot(c echo.Context) error {
+	spot := new(models.Spot)
+	if err := c.Bind(spot); err != nil {
+		return c.JSON(http.StatusBadRequest, "Bind: "+err.Error())
+	}
 
-// 	err := conn.Insert(models.Spot)
-// 	if err != nil {
-// 		return c.JSON(http.StatusBadRequest, "Insert: "+err.Error())
-// 	}
-// 	return c.NoContent(http.StatusOK)
-// }
+	// err := conn.Insert(models.spots)
+	err := spot.Insert()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Insert: "+err.Error())
+	}
+	return c.NoContent(http.StatusOK)
+}

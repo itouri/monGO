@@ -1,12 +1,11 @@
 package models
 
-import mgo (
-	"fmt"
-
+import (
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
-type DbBase struct {}
+type DbBase struct{}
 
 func (d *DbBase) Session() *mgo.Session {
 	return _Session
@@ -24,6 +23,6 @@ func (d *DbBase) Find(collectionName string, query, selector interface{}) *mgo.Q
 	return d.Database().C(collectionName).Find(query).Select(selector)
 }
 
-func (d *DbBase) FindId(collectionName string, id int) *mgo.Query {
+func (d *DbBase) FindId(collectionName string, id bson.ObjectId) *mgo.Query {
 	return d.Database().C(collectionName).FindId(id)
 }

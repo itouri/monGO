@@ -29,7 +29,7 @@ func (s *Spot) ColName() string {
 }
 
 func (s *Spot) Insert() error {
-	return s.Collection(a.ColName().Insert(s))
+	return s.Collection(s.ColName()).Insert(s)
 }
 
 //TODO
