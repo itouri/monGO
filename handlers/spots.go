@@ -22,7 +22,7 @@ func GetSpot(c echo.Context) error {
 	// err := conn.FindId(id).One(&retJSON)
 	// TODO goのパラメータでJSON返してる
 	spot := new(models.Spot)
-	err := spot.FindId("unicorns", id).One(&retJSON)
+	err := spot.FindId("spot", id).One(&retJSON)
 	if err != nil {
 		return c.JSON(http.StatusOK, err.Error())
 	}

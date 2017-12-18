@@ -32,6 +32,6 @@ func init() {
 	DBCONFIG = &Db{
 		Host:     "127.0.0.1",
 		Port:     27017,
-		Database: "unicorn",
+		Database: "test",
 	}
 }
