@@ -24,7 +24,7 @@ func main() {
 	e.GET("/api/spot/:id", handlers.GetSpot)
 	e.POST("/api/spot", handlers.PostSpot)
 
-	e.File("/", "public/index.html")
+	e.Static("/", "public")
 
 	// Start server
 	//e.Run(standard.New(":1323"))
