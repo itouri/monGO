@@ -5,6 +5,7 @@ import (
 	//"fmt"
 
 	"./handlers"
+	"./interceptor"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -23,6 +24,9 @@ func main() {
 
 	e.GET("/api/spot/:id", handlers.GetSpot)
 	e.POST("/api/spot", handlers.PostSpot)
+
+	// basic auth
+	e.GET("/secret", handlers.GetSecret, interceptor.BasicAuth())
 
 	e.Static("/", "public")
 
