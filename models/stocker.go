@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/go-playground/validator"
+	mgo "gopkg.in/mgo.v2"
 )
 
 type Stocker struct {
@@ -26,10 +27,9 @@ func (s *Stocker) Insert() error {
 // 	return s.Collection(a.ColName().UpdateId(s.ID), s)
 // }
 
-//TODO
-// func (s *Stocker) Delete() error {
-// 	return s.Collection(s.ColName().RemoveId(s.ID))
-// }
+func (s *Stocker) DeleteAll() (*mgo.ChangeInfo, error) {
+	return s.Collection(s.ColName()).RemoveAll(nil)
+}
 
 func (s *Stocker) Validate() error {
 	validate := validator.New()

@@ -36,7 +36,8 @@ func checkSales() {
 }
 
 func deleteAll() {
-
+	stocker := new(models.Stocker)
+	stocker.DeleteAll()
 }
 
 func GetStocker(c echo.Context) error {
