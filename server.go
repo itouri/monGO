@@ -27,6 +27,8 @@ func main() {
 
 	e.GET("/calc", handlers.GetCalc)
 
+	e.GET("/stocker", handlers.GetStocker)
+
 	// basic auth
 	e.GET("/secret", handlers.GetSecret, interceptor.BasicAuth())
 

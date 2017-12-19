@@ -31,6 +31,7 @@ func cP(in int) int {
 	default:
 		return 0
 	}
+	return -1
 }
 
 func a(sli []int, v int, str string) []int {
@@ -77,6 +78,24 @@ func makeOpSlice(str string) []int {
 	}
 	return ops
 }
+
+// func convertToRPN(ops []int) []int {
+// 	rpnOps := []int{}
+// 	p := []int{}
+// 	s := []int{}
+// 	for _, op := range ops {
+// 		if op == PaLeft {
+// 			s = append(s, op)
+// 		}
+// 		if op == PaRight {
+// 			for
+// 		}
+// 		for cP(op) < cP(s[len(s)-1]) {
+// 			p = append(p, s[len(s)-1])
+// 			s = s[:len(s)-1]
+// 		}
+// 	}
+// }
 
 func clac(str string) {
 	// ops := makeOpSlice(str)
