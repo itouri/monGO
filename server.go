@@ -25,6 +25,8 @@ func main() {
 	e.GET("/api/spot/:id", handlers.GetSpot)
 	e.POST("/api/spot", handlers.PostSpot)
 
+	e.GET("/calc", handlers.GetCalc)
+
 	// basic auth
 	e.GET("/secret", handlers.GetSecret, interceptor.BasicAuth())
 
