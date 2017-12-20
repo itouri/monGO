@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -66,13 +67,28 @@ func sell(name string, amount int, price float64) {
 	}
 }
 
-func checkSales() {
-
+func checkSales() string {
+	inst := new(models.Sell)
+	err := inst.Find(inst.ColName(), nil).One(&inst)
+	if err != nil {
+		log.Fatalf("FINDONE: " + err.Error())
+	}
+	// 12.3456
+	val := inst.Sell
+	// 1234.56
+	val *= 100
+	// 1235.0
+	val = math.Ceil(val)
+	// 12.35
+	val /= 100
+	return fmt.Sprintf("sales: %f\n", val)
 }
 
 func deleteAll() {
 	stocker := new(models.Stocker)
 	stocker.DeleteAll()
+	inst := new(models.Sell)
+	inst.DeleteAll()
 }
 
 func GetStocker(c echo.Context) error {
@@ -116,7 +132,7 @@ func GetStocker(c echo.Context) error {
 		}
 		sell(name, amount, price)
 	case "checksales":
-		checkSales()
+		return c.String(http.StatusOK, checkSales())
 	case "deleteall":
 		deleteAll()
 	default:
