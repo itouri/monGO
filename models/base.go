@@ -19,7 +19,11 @@ func (d *DbBase) Collection(collectionName string) *mgo.Collection {
 	return d.Database().C(collectionName)
 }
 
-func (d *DbBase) Find(collectionName string, query, selector interface{}) *mgo.Query {
+func (d *DbBase) Find(collectionName string, query interface{}) *mgo.Query {
+	return d.Database().C(collectionName).Find(query)
+}
+
+func (d *DbBase) FindSelect(collectionName string, query, selector interface{}) *mgo.Query {
 	return d.Database().C(collectionName).Find(query).Select(selector)
 }
 
