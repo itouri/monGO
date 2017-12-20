@@ -71,7 +71,6 @@ func GetStocker(c echo.Context) error {
 		amount = 1
 	} else {
 		amount, err = strconv.Atoi(amountPram)
-		fmt.Print(amount)
 		if err != nil {
 			return c.String(http.StatusOK, err.Error())
 		}
@@ -81,7 +80,6 @@ func GetStocker(c echo.Context) error {
 	var price float64
 	if pricePram != "" {
 		price, err = strconv.ParseFloat(pricePram, 64)
-		fmt.Print(price)
 		if err != nil {
 			return c.String(http.StatusOK, err.Error())
 		}
