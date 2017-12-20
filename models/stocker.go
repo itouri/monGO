@@ -22,10 +22,9 @@ func (s *Stocker) Insert() error {
 	return s.Collection(s.ColName()).Insert(s)
 }
 
-//TODO
-// func (s *Stocker) Update() error {
-// 	return s.Collection(a.ColName().UpdateId(s.ID), s)
-// }
+func (s *Stocker) Upsert(selector, upsert interface{}) (*mgo.ChangeInfo, error) {
+	return s.Collection(s.ColName()).Upsert(selector, upsert)
+}
 
 func (s *Stocker) DeleteAll() (*mgo.ChangeInfo, error) {
 	return s.Collection(s.ColName()).RemoveAll(nil)

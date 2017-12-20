@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"../models"
 
@@ -11,14 +14,12 @@ import (
 )
 
 func addStock(name string, amount int) error {
-	stocker := &models.Stocker{
-		Name:   name,
-		Amount: amount,
-		Price:  0,
-	}
-	err := stocker.Insert()
+	stocker := new(models.Stocker)
+	selector := bson.M{"name": name}
+	upsert := bson.M{"$inc": bson.M{"amount": amount}}
+	_, err := stocker.Upsert(selector, upsert)
 	if err != nil {
-		return fmt.Errorf("Insert: " + err.Error())
+		log.Fatalf("UPSERT: " + err.Error())
 	}
 	return nil
 }
