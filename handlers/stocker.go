@@ -49,7 +49,21 @@ func checkStock(name string) string {
 }
 
 func sell(name string, amount int, price float64) {
+	stocker := new(models.Stocker)
+	selector := bson.M{"name": name}
+	upsert := bson.M{"$inc": bson.M{"amount": -amount}}
+	_, err := stocker.Upsert(selector, upsert)
+	if err != nil {
+		log.Fatalf("UPSERT: " + err.Error())
+	}
 
+	inst := new(models.Sell)
+	selector = bson.M{"sell": bson.M{"$gte": 0}}
+	upsert = bson.M{"$inc": bson.M{"sell": float64(amount) * price}}
+	_, err = inst.Upsert(selector, upsert)
+	if err != nil {
+		log.Fatalf("UPSERT: " + err.Error())
+	}
 }
 
 func checkSales() {
