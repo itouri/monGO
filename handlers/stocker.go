@@ -7,14 +7,64 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo"
+
 	"gopkg.in/mgo.v2/bson"
 
 	"../models"
-
-	"github.com/labstack/echo"
 )
 
+func GetStocker(c echo.Context) error {
+	name := c.QueryParam("name")
+
+	amountPram := c.QueryParam("amount")
+	var amount int
+	var err error
+	if amountPram == "" {
+		amount = 1
+	} else {
+		amount, err = strconv.Atoi(amountPram)
+		if err != nil {
+			// return c.String(http.StatusOK, err.Error())
+			return c.String(http.StatusOK, "ERROR")
+		}
+	}
+
+	pricePram := c.QueryParam("price")
+
+	f := c.QueryParam("function")
+	switch f {
+	case "addstock":
+		err := addStock(name, amount)
+		if err != nil {
+			// return c.String(http.StatusOK, err.Error())
+			return c.String(http.StatusOK, "ERROR")
+		}
+	case "checkstock":
+		return c.String(http.StatusOK, checkStock(name))
+	case "sell":
+		sell(name, amount, pricePram)
+	case "checksales":
+		return c.String(http.StatusOK, checkSales())
+	case "deleteall":
+		deleteAll()
+	default:
+		// return c.String(http.StatusOK, "ERROR:no function")
+		return c.String(http.StatusOK, "ERROR")
+	}
+	return c.String(http.StatusOK, "OK")
+}
+
 func addStock(name string, amount int) error {
+	// validation
+	if name == "" {
+		// return c.String(http.StatusOK, "ERROR:addsotck")
+		return fmt.Errorf("name must not nil")
+	}
+	if amount <= 0 {
+		return fmt.Errorf("amount must greater then 0")
+	}
+
 	stocker := new(models.Stocker)
 	selector := bson.M{"name": name}
 	upsert := bson.M{"$inc": bson.M{"amount": amount}}
@@ -49,7 +99,16 @@ func checkStock(name string) string {
 	return retStr
 }
 
-func sell(name string, amount int, price float64) {
+func sell(name string, amount int, pricePram string) error {
+	// validation
+	if name == "" {
+		// return c.String(http.StatusOK, "ERROR:addsotck")
+		return fmt.Errorf("name must not nil")
+	}
+	if amount <= 0 {
+		return fmt.Errorf("amount must greater then 0")
+	}
+
 	stocker := new(models.Stocker)
 	selector := bson.M{"name": name}
 	upsert := bson.M{"$inc": bson.M{"amount": -amount}}
@@ -58,13 +117,27 @@ func sell(name string, amount int, price float64) {
 		log.Fatalf("UPSERT: " + err.Error())
 	}
 
-	inst := new(models.Sell)
-	selector = bson.M{"sell": bson.M{"$gte": 0}}
-	upsert = bson.M{"$inc": bson.M{"sell": float64(amount) * price}}
-	_, err = inst.Upsert(selector, upsert)
-	if err != nil {
-		log.Fatalf("UPSERT: " + err.Error())
+	var price float64
+	if pricePram != "" {
+		price, err = strconv.ParseFloat(pricePram, 64)
+		if err != nil {
+			// return c.String(http.StatusOK, err.Error())
+			return err
+		}
+
+		if price <= 0 {
+			return fmt.Errorf("price must greater then 0")
+		}
+
+		inst := new(models.Sell)
+		selector = bson.M{"sell": bson.M{"$gte": 0}}
+		upsert = bson.M{"$inc": bson.M{"sell": float64(amount) * price}}
+		_, err = inst.Upsert(selector, upsert)
+		if err != nil {
+			log.Fatalf("UPSERT: " + err.Error())
+		}
 	}
+	return nil
 }
 
 func checkSales() string {
@@ -81,6 +154,7 @@ func checkSales() string {
 	val = math.Ceil(val)
 	// 12.35
 	val /= 100
+	// TODO format
 	return fmt.Sprintf("sales: %f\n", val)
 }
 
@@ -89,54 +163,4 @@ func deleteAll() {
 	stocker.DeleteAll()
 	inst := new(models.Sell)
 	inst.DeleteAll()
-}
-
-func GetStocker(c echo.Context) error {
-	name := c.QueryParam("name")
-
-	amountPram := c.QueryParam("amount")
-	var amount int
-	var err error
-	if amountPram == "" {
-		amount = 1
-	} else {
-		amount, err = strconv.Atoi(amountPram)
-		if err != nil {
-			return c.String(http.StatusOK, err.Error())
-		}
-	}
-
-	pricePram := c.QueryParam("price")
-	var price float64
-	if pricePram != "" {
-		price, err = strconv.ParseFloat(pricePram, 64)
-		if err != nil {
-			return c.String(http.StatusOK, err.Error())
-		}
-	}
-	f := c.QueryParam("function")
-	switch f {
-	case "addstock":
-		if name == "" {
-			return c.String(http.StatusOK, "ERROR:addsotck")
-		}
-		err := addStock(name, amount)
-		if err != nil {
-			return c.String(http.StatusOK, err.Error())
-		}
-	case "checkstock":
-		return c.String(http.StatusOK, checkStock(name))
-	case "sell":
-		if name == "" {
-			return c.String(http.StatusOK, "ERROR")
-		}
-		sell(name, amount, price)
-	case "checksales":
-		return c.String(http.StatusOK, checkSales())
-	case "deleteall":
-		deleteAll()
-	default:
-		return c.String(http.StatusOK, "ERROR:no function")
-	}
-	return c.String(http.StatusOK, "OK")
 }
