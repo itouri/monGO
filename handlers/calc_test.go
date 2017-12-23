@@ -54,3 +54,27 @@ func TestConvertToRPN(t *testing.T) {
 		}
 	}
 }
+
+func TestCalcRPN(t *testing.T) {
+	rpns := [][]int{
+		{1, 2, Plus},
+		{1, 2, Times},
+		{1, 2, 3, Times, 4, 2, Divide, Minus, Plus},
+		{1, 44, 56, 2, Divide, Plus, Plus},
+		{1, 2, Plus, 3, Times},
+		//{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
+	}
+	ans := []int{
+		3,
+		2,
+		5,
+		73,
+		9,
+	}
+	for i, rpn := range rpns {
+		check := clacRPN(rpn)
+		if !reflect.DeepEqual(ans[i], check) {
+			t.Errorf("Miss matched %#v <=> %#v", ans[i], check)
+		}
+	}
+}

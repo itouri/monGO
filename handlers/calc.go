@@ -112,9 +112,41 @@ func convertToRPN(ops []int) []int {
 	return p
 }
 
-func clac(str string) {
-	// ops := makeOpSlice(str)
-	// rpn := convertToRPN(ops)
+func clacRPN(ops []int) int {
+	for i := 0; i < len(ops); i++ {
+		// +-/*
+		if ops[i] < 0 {
+			// val = val1 - val2
+			var val int
+			val1 := ops[i-2]
+			val2 := ops[i-1]
+			switch ops[i] {
+			case Times:
+				val = val1 * val2
+			case Divide:
+				val = val1 / val2
+			case Plus:
+				val = val1 + val2
+			case Minus:
+				val = val1 - val2
+			}
+			// [5, 1, 2, +(i), -] -> [5, 3, -]
+			ops[i] = val
+			ops = append(ops[:i-2], ops[i:]...)
+			i -= 2
+		}
+		if len(ops) == 1 {
+			break
+		}
+	}
+	return ops[0]
+}
+
+func clac(str string) int {
+	ops := makeOpSlice(str)
+	rpn := convertToRPN(ops)
+	ans := clacRPN(rpn)
+	return ans
 }
 
 func GetCalc(c echo.Context) error {
