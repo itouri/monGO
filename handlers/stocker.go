@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"net/http"
 	"strconv"
@@ -33,26 +32,33 @@ func GetStocker(c echo.Context) error {
 	pricePram := c.QueryParam("price")
 
 	f := c.QueryParam("function")
+	var str string
 	switch f {
 	case "addstock":
-		err := addStock(name, amount)
-		if err != nil {
-			// return c.String(http.StatusOK, err.Error())
-			return c.String(http.StatusOK, "ERROR")
-		}
+		err = addStock(name, amount)
 	case "checkstock":
-		return c.String(http.StatusOK, checkStock(name))
+		str, err = checkStock(name)
 	case "sell":
-		sell(name, amount, pricePram)
+		err = sell(name, amount, pricePram)
 	case "checksales":
-		return c.String(http.StatusOK, checkSales())
+		str, err = checkSales()
 	case "deleteall":
 		deleteAll()
 	default:
-		// return c.String(http.StatusOK, "ERROR:no function")
-		return c.String(http.StatusOK, "ERROR")
+		// log.Println("ERROR:no function")
+		err = fmt.Errorf("ERROR:no function")
 	}
-	return c.String(http.StatusOK, "OK")
+
+	if err != nil {
+		return c.String(http.StatusOK, err.Error())
+	}
+	if str != "" {
+		// return c.String(http.StatusOK, "OK: "+str)
+		return c.String(http.StatusOK, str)
+	}
+	// return c.String(http.StatusOK, "OK")
+	return c.NoContent(http.StatusOK)
+
 }
 
 func addStock(name string, amount int) error {
@@ -70,33 +76,34 @@ func addStock(name string, amount int) error {
 	upsert := bson.M{"$inc": bson.M{"amount": amount}}
 	_, err := stocker.Upsert(selector, upsert)
 	if err != nil {
-		log.Fatalf("UPSERT: " + err.Error())
+		return err
 	}
 	return nil
 }
 
-func checkStock(name string) string {
+func checkStock(name string) (string, error) {
 	stocker := new(models.Stocker)
 	if name != "" {
 		query := bson.M{"name": name}
 		result := new(models.Stocker)
 		err := stocker.Find(stocker.ColName(), query).One(&result)
 		if err != nil {
-			log.Fatalf("FINDONE: " + err.Error())
+			return "", err
 		}
-		return result.Name + ": " + strconv.Itoa(result.Amount) + "\n"
+		retStr := result.Name + ": " + strconv.Itoa(result.Amount) + "\n"
+		return retStr, nil
 	}
 	results := []models.Stocker{}
 	query := bson.M{"amount": bson.M{"$gt": 0}}
 	err := stocker.Find(stocker.ColName(), query).All(&results)
 	if err != nil {
-		log.Fatalf("FINDALL: " + err.Error())
+		return "", err
 	}
 	var retStr string
 	for _, result := range results {
 		retStr += result.Name + ": " + strconv.Itoa(result.Amount) + "\n"
 	}
-	return retStr
+	return retStr, nil
 }
 
 func sell(name string, amount int, pricePram string) error {
@@ -110,11 +117,22 @@ func sell(name string, amount int, pricePram string) error {
 	}
 
 	stocker := new(models.Stocker)
+
+	// Check exsistence of name
 	selector := bson.M{"name": name}
-	upsert := bson.M{"$inc": bson.M{"amount": -amount}}
-	_, err := stocker.Upsert(selector, upsert)
+	err := stocker.Find(stocker.ColName(), selector).One(&stocker)
 	if err != nil {
-		log.Fatalf("UPSERT: " + err.Error())
+		return err
+	}
+
+	if stocker.Amount < amount {
+		return fmt.Errorf("Amount was over commited")
+	}
+
+	upsert := bson.M{"$inc": bson.M{"amount": -amount}}
+	_, err = stocker.Upsert(selector, upsert)
+	if err != nil {
+		return err
 	}
 
 	var price float64
@@ -134,17 +152,17 @@ func sell(name string, amount int, pricePram string) error {
 		upsert = bson.M{"$inc": bson.M{"sell": float64(amount) * price}}
 		_, err = inst.Upsert(selector, upsert)
 		if err != nil {
-			log.Fatalf("UPSERT: " + err.Error())
+			return err
 		}
 	}
 	return nil
 }
 
-func checkSales() string {
+func checkSales() (string, error) {
 	inst := new(models.Sell)
 	err := inst.Find(inst.ColName(), nil).One(&inst)
 	if err != nil {
-		log.Fatalf("FINDONE: " + err.Error())
+		return "", err
 	}
 	// 12.3456
 	val := inst.Sell
@@ -155,7 +173,7 @@ func checkSales() string {
 	// 12.35
 	val /= 100
 	// TODO format
-	return fmt.Sprintf("sales: %f\n", val)
+	return fmt.Sprintf("sales: %f\n", val), nil
 }
 
 func deleteAll() {
