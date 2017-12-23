@@ -172,8 +172,8 @@ func checkSales() (string, error) {
 	val = math.Ceil(val)
 	// 12.35
 	val /= 100
-	// TODO format
-	return fmt.Sprintf("sales: %f\n", val), nil
+
+	return fmt.Sprintf("sales: %v\n", val), nil
 }
 
 func deleteAll() {
