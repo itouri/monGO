@@ -19,14 +19,11 @@ const (
 // change priority
 func cP(in int) int {
 	switch in {
-	case -1:
-	case -2:
+	case -1, -2:
 		return 1
-	case -3:
-	case -4:
+	case -3, -4:
 		return 2
-	case -5:
-	case -6:
+	case -5, -6:
 		return 3
 	default:
 		return 0
@@ -79,23 +76,41 @@ func makeOpSlice(str string) []int {
 	return ops
 }
 
-// func convertToRPN(ops []int) []int {
-// 	rpnOps := []int{}
-// 	p := []int{}
-// 	s := []int{}
-// 	for _, op := range ops {
-// 		if op == PaLeft {
-// 			s = append(s, op)
-// 		}
-// 		if op == PaRight {
-// 			for
-// 		}
-// 		for cP(op) < cP(s[len(s)-1]) {
-// 			p = append(p, s[len(s)-1])
-// 			s = s[:len(s)-1]
-// 		}
-// 	}
-// }
+func convertToRPN(ops []int) []int {
+	p := []int{}
+	s := []int{}
+	for _, op := range ops {
+		if op == PaLeft {
+			s = append(s, op)
+			continue
+		}
+		if op == PaRight {
+			for s[len(s)-1] != PaLeft {
+				p = append(p, s[len(s)-1])
+				s = s[:len(s)-1]
+			}
+			// discard '('
+			s = s[:len(s)-1]
+			// skip adding ')'
+			continue
+		}
+		if len(s) != 0 {
+			//fmt.Printf("%d vs %d\n", cP(op), cP(s[len(s)-1]))
+			for cP(op) > cP(s[len(s)-1]) {
+				p = append(p, s[len(s)-1])
+				s = s[:len(s)-1]
+				if len(s) == 0 {
+					break
+				}
+			}
+		}
+		s = append(s, op)
+	}
+	for i := len(s) - 1; i >= 0; i-- {
+		p = append(p, s[i])
+	}
+	return p
+}
 
 func clac(str string) {
 	// ops := makeOpSlice(str)
