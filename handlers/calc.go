@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo"
 )
@@ -151,6 +154,13 @@ func clac(str string) int {
 
 func GetCalc(c echo.Context) error {
 	str := c.QueryString()
+	if strings.Count(str, "(") != strings.Count(str, ")") {
+		return fmt.Errorf("Don't match '(' and ')' numbers")
+	}
+	r := regexp.MustCompile(`[^\+\-\*\/()0-9]`)
+	if r.MatchString(str) {
+		return fmt.Errorf("string include not valid char")
+	}
 
-	return c.String(http.StatusOK, str)
+	return c.String(http.StatusOK, strconv.Itoa(clac(str)))
 }
