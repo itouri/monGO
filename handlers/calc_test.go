@@ -11,6 +11,8 @@ func TestMakeOpSlice(t *testing.T) {
 		"1*2",
 		"1+2*3-4/5",
 		"1+44+55/666",
+		"-7+3",
+		"3+(-7)",
 		"(1+2)*3",
 		"((1+2)*3)",
 	}
@@ -19,6 +21,8 @@ func TestMakeOpSlice(t *testing.T) {
 		{1, Times, 2},
 		{1, Plus, 2, Times, 3, Minus, 4, Divide, 5},
 		{1, Plus, 44, Plus, 55, Divide, 666},
+		{-7, Plus, 3},
+		{3, Plus, -7},
 		{PaLeft, 1, Plus, 2, PaRight, Times, 3},
 		{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
 	}
@@ -36,6 +40,8 @@ func TestConvertToRPN(t *testing.T) {
 		{1, Times, 2},
 		{1, Plus, 2, Times, 3, Minus, 4, Divide, 5},
 		{1, Plus, 44, Plus, 55, Divide, 666},
+		{-7, Plus, 3},
+		{3, Plus, -7},
 		{PaLeft, 1, Plus, 2, PaRight, Times, 3},
 		//{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
 	}
@@ -44,6 +50,8 @@ func TestConvertToRPN(t *testing.T) {
 		{1, 2, Times},
 		{1, 2, 3, Times, 4, 5, Divide, Minus, Plus},
 		{1, 44, 55, 666, Divide, Plus, Plus},
+		{-7, 3, Plus},
+		{3, -7, Plus},
 		{1, 2, Plus, 3, Times},
 		//{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
 	}
@@ -62,6 +70,8 @@ func TestCalcRPN(t *testing.T) {
 		{1, 2, 3, Times, 4, 2, Divide, Minus, Plus},
 		{1, 44, 56, 2, Divide, Plus, Plus},
 		{1, 2, Plus, 3, Times},
+		{-7, 3, Plus},
+		{3, -7, Plus},
 		//{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
 	}
 	ans := []int{
@@ -70,6 +80,8 @@ func TestCalcRPN(t *testing.T) {
 		5,
 		73,
 		9,
+		-4,
+		-4,
 	}
 	for i, rpn := range rpns {
 		check := clacRPN(rpn)

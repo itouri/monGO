@@ -24,7 +24,7 @@ var (
 // init()は勝手に呼ばれる
 func init() {
 	APPCONFIG = &App{
-		Name:  "Blog Manage",
+		Name:  "amazon",
 		Port:  8006,
 		Debug: true,
 	}

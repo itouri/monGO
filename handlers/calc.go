@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -11,22 +10,22 @@ import (
 )
 
 const (
-	Times   = -1
-	Divide  = -2
-	Plus    = -3
-	Minus   = -4
-	PaLeft  = -5
-	PaRight = -6
+	Times   = -991
+	Divide  = -992
+	Plus    = -993
+	Minus   = -994
+	PaLeft  = -995
+	PaRight = -996
 )
 
 // change priority
 func cP(in int) int {
 	switch in {
-	case -1, -2:
+	case -991, -992:
 		return 1
-	case -3, -4:
+	case -993, -994:
 		return 2
-	case -5, -6:
+	case -995, -996:
 		return 3
 	default:
 		return 0
@@ -34,11 +33,17 @@ func cP(in int) int {
 	return -1
 }
 
-func a(sli []int, v int, str string) []int {
+func a(sli []int, v int, str string, isMinus bool) []int {
 	//TODO error handling
 	if str != "" {
 		val, _ := strconv.Atoi(str)
+		if isMinus {
+			val *= -1
+		}
 		sli = append(sli, val)
+	}
+	if v == PaRight && isMinus {
+		return sli
 	}
 	sli = append(sli, v)
 	return sli
@@ -47,29 +52,45 @@ func a(sli []int, v int, str string) []int {
 func makeOpSlice(str string) []int {
 	ops := []int{}
 	var numStr string
-	for _, r := range str {
+	isSkip := false
+	isMinus := false
+	for i, r := range str {
 		isNum := false
+		if isSkip {
+			isSkip = false
+			continue
+		}
 		switch {
 		case '0' <= r && r <= '9':
 			numStr += string(r)
 			isNum = true
 		case r == '+':
-			ops = a(ops, Plus, numStr)
+			ops = a(ops, Plus, numStr, isMinus)
 		case r == '-':
-			ops = a(ops, Minus, numStr)
+			if i == 0 {
+				isMinus = true
+				continue
+			}
+			ops = a(ops, Minus, numStr, isMinus)
 		case r == '*':
-			ops = a(ops, Times, numStr)
+			ops = a(ops, Times, numStr, isMinus)
 		case r == '/':
-			ops = a(ops, Divide, numStr)
+			ops = a(ops, Divide, numStr, isMinus)
 		case r == '(':
-			ops = a(ops, PaLeft, numStr)
+			if str[i+1] == '-' {
+				isMinus = true
+				isSkip = true
+				continue
+			}
+			ops = a(ops, PaLeft, numStr, isMinus)
 		case r == ')':
-			ops = a(ops, PaRight, numStr)
+			ops = a(ops, PaRight, numStr, isMinus)
 		default:
 			// return ERROR
 		}
 		if !isNum {
 			numStr = ""
+			isMinus = false
 		}
 	}
 	if numStr != "" {
@@ -118,7 +139,7 @@ func convertToRPN(ops []int) []int {
 func clacRPN(ops []int) int {
 	for i := 0; i < len(ops); i++ {
 		// +-/*
-		if ops[i] < 0 {
+		if -996 <= ops[i] && ops[i] <= -991 {
 			// val = val1 - val2
 			var val int
 			val1 := ops[i-2]
@@ -155,11 +176,13 @@ func clac(str string) int {
 func GetCalc(c echo.Context) error {
 	str := c.QueryString()
 	if strings.Count(str, "(") != strings.Count(str, ")") {
-		return fmt.Errorf("Don't match '(' and ')' numbers")
+		return c.String(http.StatusOK, "ERROR")
+		//return fmt.Errorf("Don't match '(' and ')' numbers")
 	}
-	r := regexp.MustCompile(`[^\+\-\*\/()0-9]`)
+	r := regexp.MustCompile(`[^/+\-\*\/()0-9]`)
 	if r.MatchString(str) {
-		return fmt.Errorf("string include not valid char")
+		return c.String(http.StatusOK, "ERROR")
+		//return fmt.Errorf("string include not valid char")
 	}
 
 	return c.String(http.StatusOK, strconv.Itoa(clac(str)))
