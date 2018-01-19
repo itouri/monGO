@@ -4,12 +4,18 @@ import (
 
 	//"fmt"
 
+	"net/http"
+
 	"./handlers"
 	"./interceptor"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
+
+func retAMAZON(c echo.Context) error {
+	return c.String(http.StatusOK, "AMAZON")
+}
 
 func main() {
 	e := echo.New()
@@ -18,8 +24,6 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// これを入れないと OPTION のメソッドがさばけずエラーになる
-	// TODO これがない時のエラー原因を理解する
 	e.Use(middleware.CORS())
 
 	e.GET("/api/spot/:id", handlers.GetSpot)
@@ -30,11 +34,11 @@ func main() {
 	e.GET("/stocker", handlers.GetStocker)
 
 	// basic auth
-	e.GET("/secret", handlers.GetSecret, interceptor.BasicAuth())
+	e.GET("/secret/", handlers.GetSecret, interceptor.BasicAuth())
 
-	e.Static("/", "public")
+	e.GET("/", retAMAZON)
 
 	// Start server
 	//e.Run(standard.New(":1323"))
-	e.Start(":1323")
+	e.Start(":8080")
 }
