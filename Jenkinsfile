@@ -2,9 +2,9 @@ node {
    stage 'git clone'
    git 'https://github.com/itouri/monGO.git'
  
-   stage 'composer install'
-   sh 'composer install'
+   stage 'unit test'
+   sh './ci/unit-tests/unit-test.sh'
  
-   stage 'phpunit'
-   sh 'phpunit -c phpunit.xml.dist'
+   stage 'acceptance test'
+   sh 'echo "not implement yet"'
 }
