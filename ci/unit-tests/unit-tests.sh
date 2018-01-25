@@ -1,2 +1,4 @@
 #!/bin/bash
-go test $(go list ./... | grep -v /vendor/)
+# GOPATHの設定しないと
+cd $GOPATH
+go test ./...
