@@ -16,3 +16,8 @@ RUN yum -y install jenkins
 RUN yum -y install git
 RUN yum -y install go
 RUN yum clean all
+
+# GOPATHの設定
+ENV GOPATH=/var/tmp/go
+ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+RUN mkdir $GOPATH
