@@ -14,4 +14,5 @@ RUN rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
 # Jenkinsとgitをインストール
 RUN yum -y install jenkins
 RUN yum -y install git
+RUN yum -y install go
 RUN yum clean all
