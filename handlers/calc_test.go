@@ -16,15 +16,15 @@ func TestMakeOpSlice(t *testing.T) {
 		"(1+2)*3",
 		"((1+2)*3)",
 	}
-	ans := [][]int{
-		{1, Plus, 2},
-		{1, Times, 2},
-		{1, Plus, 2, Times, 3, Minus, 4, Divide, 5},
-		{1, Plus, 44, Plus, 55, Divide, 666},
-		{-7, Plus, 3},
-		{3, Plus, -7},
-		{PaLeft, 1, Plus, 2, PaRight, Times, 3},
-		{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
+	ans := [][]Ops{
+		{1, '+', 2},
+		{1, '*', 2},
+		{1, '+', 2, '*', 3, '-', 4, '/', 5},
+		{1, '+', 44, '+', 55, '/', 666},
+		{-7, '+', 3},
+		{3, '+', -7},
+		{'(', 1, '+', 2, ')', '*', 3},
+		{'(', '(', 1, '+', 2, ')', '*', 3, ')'},
 	}
 	for i, expr := range exprs {
 		check := makeOpSlice(expr)
@@ -35,25 +35,25 @@ func TestMakeOpSlice(t *testing.T) {
 }
 
 func TestConvertToRPN(t *testing.T) {
-	exprs := [][]int{
-		{1, Plus, 2},
-		{1, Times, 2},
-		{1, Plus, 2, Times, 3, Minus, 4, Divide, 5},
-		{1, Plus, 44, Plus, 55, Divide, 666},
-		{-7, Plus, 3},
-		{3, Plus, -7},
-		{PaLeft, 1, Plus, 2, PaRight, Times, 3},
-		//{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
+	exprs := [][]Ops{
+		{1, '+', 2},
+		{1, '*', 2},
+		{1, '+', 2, '*', 3, '-', 4, '/', 5},
+		{1, '+', 44, '+', 55, '/', 666},
+		{-7, '+', 3},
+		{3, '+', -7},
+		{'(', 1, '+', 2, ')', '*', 3},
+		//{'(', '(', 1, '+', 2, ')', '*', 3, ')'},
 	}
-	rpn := [][]int{
-		{1, 2, Plus},
-		{1, 2, Times},
-		{1, 2, 3, Times, 4, 5, Divide, Minus, Plus},
-		{1, 44, 55, 666, Divide, Plus, Plus},
-		{-7, 3, Plus},
-		{3, -7, Plus},
-		{1, 2, Plus, 3, Times},
-		//{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
+	rpn := [][]Ops{
+		{1, 2, '+'},
+		{1, 2, '*'},
+		{1, 2, 3, '*', 4, 5, '/', '-', '+'},
+		{1, 44, 55, 666, '/', '+', '+'},
+		{-7, 3, '+'},
+		{3, -7, '+'},
+		{1, 2, '+', 3, '*'},
+		//{'(', '(', 1, '+', 2, ')', '*', 3, ')'},
 	}
 	for i, expr := range exprs {
 		check := convertToRPN(expr)
@@ -64,15 +64,15 @@ func TestConvertToRPN(t *testing.T) {
 }
 
 func TestCalcRPN(t *testing.T) {
-	rpns := [][]int{
-		{1, 2, Plus},
-		{1, 2, Times},
-		{1, 2, 3, Times, 4, 2, Divide, Minus, Plus},
-		{1, 44, 56, 2, Divide, Plus, Plus},
-		{1, 2, Plus, 3, Times},
-		{-7, 3, Plus},
-		{3, -7, Plus},
-		//{PaLeft, PaLeft, 1, Plus, 2, PaRight, Times, 3, PaRight},
+	rpns := [][]Ops{
+		{1, 2, '+'},
+		{1, 2, '*'},
+		{1, 2, 3, '*', 4, 2, '/', '-', '+'},
+		{1, 44, 56, 2, '/', '+', '+'},
+		{1, 2, '+', 3, '*'},
+		{-7, 3, '+'},
+		{3, -7, '+'},
+		//{'(', '(', 1, '+', 2, ')', '*', 3, ')'},
 	}
 	ans := []int{
 		3,

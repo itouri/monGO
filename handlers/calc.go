@@ -9,31 +9,31 @@ import (
 	"github.com/labstack/echo"
 )
 
-const (
-	Times   = -991
-	Divide  = -992
-	Plus    = -993
-	Minus   = -994
-	PaLeft  = -995
-	PaRight = -996
-)
+type Ops interface{}
 
 // change priority
-func cP(in int) int {
-	switch in {
-	case -991, -992:
-		return 1
-	case -993, -994:
-		return 2
-	case -995, -996:
-		return 3
-	default:
+func cP(in Ops) int {
+	switch in.(type) {
+	case rune:
+		switch in {
+		case '*', '/':
+			return 1
+		case '+', '-':
+			return 2
+		case '(', ')':
+			return 3
+		default:
+			return -1
+		}
+	case int:
 		return 0
+	default:
+		return -1
 	}
 	return -1
 }
 
-func a(sli []int, v int, str string, isMinus bool) []int {
+func a(sli []Ops, v rune, str string, isMinus bool) []Ops {
 	//TODO error handling
 	if str != "" {
 		val, _ := strconv.Atoi(str)
@@ -42,15 +42,15 @@ func a(sli []int, v int, str string, isMinus bool) []int {
 		}
 		sli = append(sli, val)
 	}
-	if v == PaRight && isMinus {
+	if v == ')' && isMinus {
 		return sli
 	}
 	sli = append(sli, v)
 	return sli
 }
 
-func makeOpSlice(str string) []int {
-	ops := []int{}
+func makeOpSlice(str string) []Ops {
+	var ops []Ops
 	var numStr string
 	isSkip := false
 	isMinus := false
@@ -60,33 +60,25 @@ func makeOpSlice(str string) []int {
 			isSkip = false
 			continue
 		}
-		switch {
-		case '0' <= r && r <= '9':
-			numStr += string(r)
-			isNum = true
-		case r == '+':
-			ops = a(ops, Plus, numStr, isMinus)
-		case r == '-':
+		switch r {
+		case '+', '*', '/', ')':
+			ops = a(ops, r, numStr, isMinus)
+		case '-':
 			if i == 0 {
 				isMinus = true
 				continue
 			}
-			ops = a(ops, Minus, numStr, isMinus)
-		case r == '*':
-			ops = a(ops, Times, numStr, isMinus)
-		case r == '/':
-			ops = a(ops, Divide, numStr, isMinus)
-		case r == '(':
+			ops = a(ops, r, numStr, isMinus)
+		case '(':
 			if str[i+1] == '-' {
 				isMinus = true
 				isSkip = true
 				continue
 			}
-			ops = a(ops, PaLeft, numStr, isMinus)
-		case r == ')':
-			ops = a(ops, PaRight, numStr, isMinus)
-		default:
-			// return ERROR
+			ops = a(ops, r, numStr, isMinus)
+		default: // r is int
+			numStr += string(r)
+			isNum = true
 		}
 		if !isNum {
 			numStr = ""
@@ -100,16 +92,16 @@ func makeOpSlice(str string) []int {
 	return ops
 }
 
-func convertToRPN(ops []int) []int {
-	p := []int{}
-	s := []int{}
+func convertToRPN(ops []Ops) []Ops {
+	p := []Ops{}
+	s := []Ops{}
 	for _, op := range ops {
-		if op == PaLeft {
+		if op == '(' {
 			s = append(s, op)
 			continue
 		}
-		if op == PaRight {
-			for s[len(s)-1] != PaLeft {
+		if op == ')' {
+			for s[len(s)-1] != '(' {
 				p = append(p, s[len(s)-1])
 				s = s[:len(s)-1]
 			}
@@ -136,34 +128,48 @@ func convertToRPN(ops []int) []int {
 	return p
 }
 
-func clacRPN(ops []int) int {
+func clacRPN(ops []Ops) int {
 	for i := 0; i < len(ops); i++ {
-		// +-/*
-		if -996 <= ops[i] && ops[i] <= -991 {
+		switch ops[i].(type) {
+		case rune:
 			// val = val1 - val2
 			var val int
-			val1 := ops[i-2]
-			val2 := ops[i-1]
+			val1, ok := ops[i-2].(int)
+			if !ok {
+				return -1
+			}
+			val2, ok := ops[i-1].(int)
+			if !ok {
+				return -1
+			}
 			switch ops[i] {
-			case Times:
+			case '*':
 				val = val1 * val2
-			case Divide:
+			case '/':
 				val = val1 / val2
-			case Plus:
+			case '+':
 				val = val1 + val2
-			case Minus:
+			case '-':
 				val = val1 - val2
 			}
 			// [5, 1, 2, +(i), -] -> [5, 3, -]
 			ops[i] = val
 			ops = append(ops[:i-2], ops[i:]...)
 			i -= 2
+		case int:
+		default:
+			return -1
 		}
+
 		if len(ops) == 1 {
 			break
 		}
 	}
-	return ops[0]
+	ret, ok := ops[0].(int)
+	if !ok {
+		return -1
+	}
+	return ret
 }
 
 func clac(str string) int {
